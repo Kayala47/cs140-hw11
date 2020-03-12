@@ -56,10 +56,38 @@ print sortedBlocks
 
 #now we can recursively search the list for paths and find the best combination of blocks
 
-def stack(blockList):
-    #this one should find the best possible combo
+dynamicTable = []
 
+def stack(blockList, currentStack):
+    #this adds the best block to the stack
+    
+    for block in blockList:
+        dynamicTable.append(stackP(block))
+
+    maxHeight = 0
+    maxBlock = []
+    for block in dynamicTable:
+        if block[block.len() - 1] > maxHeight:
+            maxHeight = block[block.len() - 1]
+            maxBlock = block
+
+    #now we have a current maxHeight, which will be added to our currentStack
+    currentStack.append(maxBlock)
+
+    return currentStack
+        
 
 def stackP(block):
     #finds best combo starting at this block
     #return an array of the blocks chosen with the total height at the end
+
+
+
+
+result = 0
+outfile = open(outfileName, 'w')
+
+outfile.write("result")
+
+outfile.close
+
