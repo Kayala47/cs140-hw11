@@ -138,10 +138,9 @@ def stackP(startBlock, towerList, blockList, totalHeight):
             (currentBlock, currentHeight) = stackP(block, towerList, blockList, startBlock[2])
 
             #recursively check each block for biggest height
-            if(currentBlock != None):
+            if(currentBlock != None and totalHeight > maxSolution[2]):
                 totalHeight += currentBlock[2]
-            if (totalHeight > maxSolution[2]):
-                    maxSolution = currentBlock
+                maxSolution = currentBlock
 
 
 	    # generate solution "max" and assign the best possible block to that
