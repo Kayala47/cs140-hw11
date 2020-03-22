@@ -12,7 +12,8 @@ outfileName = sys.argv[2]
 
 infile = open(infileName, 'r')
 
-data = infile.read()  # this is one text string with all data
+data = infile.read()
+#this is one text string with all data
 
 
 blocks = data.split("\n")  # split every line
@@ -40,11 +41,11 @@ for block in blocks:
 
     # 0,1,2  = dimensions, 3 = base area
     allBlocks.append([dimensions[0], dimensions[1], dimensions[
-                     2], dimensions[0] * dimensions[1]])
+                     2]])
     allBlocks.append([dimensions[1], dimensions[2], dimensions[
-                     0], dimensions[1] * dimensions[2]])
+                     0]])
     allBlocks.append([dimensions[2], dimensions[0], dimensions[
-                     1], dimensions[2] * dimensions[0]])
+                     1]])
 
 
 # now we have a list with all the possible orientations of blocks and
@@ -52,7 +53,7 @@ for block in blocks:
 
 
 # now we have to sort this list from biggest to smallest base
-sortedBlocks = sorted(allBlocks, key=lambda x: x[3], reverse=True)
+sortedBlocks = sorted(allBlocks, key=lambda x: x[2], reverse=True)
 
 
 # now we can recursively search the list for paths and find the best
@@ -65,87 +66,87 @@ dynamicTable = []
 
 def stack(blockList, outfile):
     # this displays the solutions we got before
+    totalHeight = 0
+    iterNum = 0
 
     (lastBlock, totalHeight) = stackP(
-        blockList[0], dynamicTable, sortedBlocks, 0)
+        [float("inf"), float("inf"), 0], sortedBlocks, dynamicTable, totalHeight, blockList)
 
     dynamicTable.reverse()  # this now contains the solution
 
     outfile = open(outfileName, 'w')
     outfile.write(str(totalHeight))
+    outfile.write("\n")
 
     for block in dynamicTable:
-    	outfile.write(str(block))
+    	outfile.write(str(block[0:3]))
     	outfile.write("\n")
     outfile.close()
-	# print out all the blocks, in order
+	
+#defining terms here
+def stackP(startBlock, blockList ,towerList, totalHeight, canStackList):
 
-    # return block combo and total height
+    totalHeight += startBlock[2]
 
-    '''
-    for block in blockList:
-        dynamicTable.append(stackP(block))
+    #returns tuple: (selectedBlock, height added by selectedBlock)
+    #print("blocklist = " + str(blockList))
+    if (len(canStackList) > 0): #fix base case
 
-    maxHeight = 0
-    maxBlock = []
-    for block in dynamicTable:
-        if block[block.len() - 1] > maxHeight:
-            maxHeight = block[block.len() - 1]
-            maxBlock = block
+        #here, we check every member of the canStackList
+        newCanStackList = []
 
-    # now we have a current maxHeight, which will be added to our currentStack
-    currentStack.append(maxBlock)
+        #currentBlock = canStackList[iterNum] if canStackList[iterNum] != None else [0,0,0]
+        #for each block, we need to make a can stack list
+        #print("blocklist length = " + str(len(blockList)))
+        for block in blockList:
+            print("block = " + str(block))
+            print("startBlock = " + str(startBlock))
 
-    return currentStack
-    '''
-# startBlock is the block we want to place on the bottom
-# towerList is our dynamic table
-# blockList is our sorted block list
+            print(str(startBlock[0] > block[0]) + ": startBlock length > block length. startBlock = " + str(startBlock) + ", block = " + str(block))
+            print(str(startBlock[1] > block[1]) + ": startBlock width > block width. startBlock = " + str(startBlock) +  ", block = " + str(block))
+            if (startBlock[0] > block[0] and startBlock[1] > block[1]):
+                print("both were true")
+                newCanStackList.append(block)
 
+            #then, we run stackP on each element that many times
+       
+        maxHeightAdded = 0
 
-def stackP(startBlock, towerList, blockList, totalHeight):
-    # finds best combo starting at this block
-    # return an array of the blocks chosen with the total height at the end
+        if len(canStackList) > 0:
+            currentMax = canStackList[0][2]
+            bestBlock = canStackList[0]
 
-    # returns solution in tuple pair, where first part is block and second is
-    # height
-    canStackList = []
+            for i in range(0, len(canStackList)):
 
-    for block in sortedBlocks:
-    	# for each remaining block, find best solution, only looking to the right
-    	# of start
+            #the goal of this for loop is to go through the blocks that
+            #can be stacked on our starting block, and finding the best
+            #one to add, by looking recursively through the options
 
-    	# recursing through and finding the best solution for each
-    	if (startBlock[0] > block[0] and startBlock[1] > block[1]):
-    		canStackList.append(block)
+            #get the height that it would add, save it to a running variable,
+            #then compare that to the next block so that you get the block
+            #that adds the most height
 
-    	# at the end, we should have a list of all the blocks that can be stacked
+            #for each block, get its height
+                heightAdded = canStackList[i][2]
+                #this is the ht that each block adds
 
-    if (len(canStackList) <= 0):  # base case - no blocks left to stack
-    	# we can't add anything else, so that's the max ht
-    	return (None, startBlock[2])
-    elif(len(canStackList) == 1):
-		# second base case - one block left to stack
-		# we know that it has to be that block
-        return startBlock[2] + canStackList[0][2]
+                (selectedBlock, heightAddedBySB) = stackP(canStackList[i], blockList, towerList, totalHeight + heightAdded, newCanStackList)
+
+                if (heightAddedBySB > currentMax):
+                    currentMax = heightAddedBySB
+                    bestBlock = selectedBlock
+
+        print("bestBlock = " + str(bestBlock))
+        print(blockList)
+        blockList.remove(bestBlock)
+        towerList.append(bestBlock)
+        totalHeight += currentMax
+
+        return (selectedBlock, selectedBlock[2])
+        #find the best and choose that for the next step
+        
     else:
-        # recursion step - call itself to find the most height it can add
-        maxSolution = [float("inf"), float("inf"), float("-inf")]
-        #best block
-
-        for block in canStackList:
-	    	# for each remaining block, find best solution, only looking to the right of start
-            (currentBlock, currentHeight) = stackP(block, towerList, blockList, startBlock[2])
-
-            #recursively check each block for biggest height
-            if(currentBlock != None and totalHeight > maxSolution[2]):
-                totalHeight += currentBlock[2]
-                maxSolution = currentBlock
-
-
-	    # generate solution "max" and assign the best possible block to that
-        towerList.append(maxSolution) #the list will be reversed
-        return (maxSolution, totalHeight)
-
+        #base case, we've checked everything, so just return empty
+        return ([0,0,0], 0)
 
 stack(sortedBlocks,outfileName)
