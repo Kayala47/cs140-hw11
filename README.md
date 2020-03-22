@@ -1,2 +1,7 @@
-# cs140-hw11
-repo for this homework assignment
+# cs140-hw11 #
+
+## Algorithm ## 
+
+## Compiling ##
+
+## Running Time ##
