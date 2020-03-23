@@ -48,14 +48,14 @@ for block in blocks:
 # their respective base areas
 
 
-# now we have to sort this list from biggest to smallest base
-sortedBlocks = sorted(allBlocks, key=lambda x: x[2], reverse=True)
+# now we have to sort this list from biggest to smallest length
+sortedBlocks = sorted(allBlocks, key=lambda x: x[0], reverse=True)
 
 
 # now we can recursively search the list for paths and find the best
 # combination of blocks
 
-towerList = []
+
 
 # blockList refers to sorted blocks
 
@@ -64,125 +64,65 @@ def stack(blockList, outfile):
     # this displays the solutions we got before
     totalHeight = 0
 
-    (firstBlock, totalHeight) = stackP(
-        [float("inf"), float("inf"), 0], sortedBlocks, towerList, totalHeight, blockList)
+    dynamicTable = []
 
-    towerList.reverse()  # this now contains the solution
+    stackP([float("inf"), float("inf"), 0], sortedBlocks, dynamicTable)
+
+    print("dynamicTable = " + str(dynamicTable))
+    bestTower = findTallestTower(dynamicTable)
+    print("bestTower = " + str(bestTower))
+
+    answer = ""
+
+    for block in bestTower:
+        answer += (str(block))
+        answer += ("\n")
+        totalHeight += block[2]
 
     outfile = open(outfileName, 'w')
     outfile.write(str(totalHeight))
     outfile.write("\n")
+    outfile.write(answer)
 
-    for block in towerList:
-        outfile.write(str(block))
-        outfile.write("\n")
-
-    print("The tallest tower has " + str(len(towerList)) + " blocks and a height of " + str(totalHeight))
+    print("The tallest tower has " + str(len(bestTower)) + " blocks and a height of " + str(totalHeight))
     outfile.close()
-    
+
+def findTallestTower(towerList):
+
+    maxHeight = 0
+    tallestTower = []
+
+    for tower in towerList:
+        towerHeight = 0
+        for block in tower:
+            if (block != None):
+                towerHeight += block[2]
+            else:
+                tower.remove(block)
+        
+        if towerHeight > maxHeight:
+            maxHeight = towerHeight
+            tallestTower = tower
+
+    return tallestTower
 #defining terms here
-def stackP(startBlock, blockList,towerList, totalHeight, canStackList):
 
-    # totalHeight += startBlock[2]
+def stackP(startBlock, blockList, towerList):
 
-    # print("startBlock = " + str(startBlock))
-    
-    #returns tuple: (selectedBlock, height added by selectedBlock)
-    #print("blocklist = " + str(blockList))
-    if (len(canStackList) > 0): 
+    if (len(blockList) < 1):
+        return startBlock
 
-        #here, we check every member of the canStackList
-        newCanStackList = []
-
-        #currentBlock = canStackList[iterNum] if canStackList[iterNum] != None else [0,0,0]
-        #for each block, we need to make a can stack list
-        #print("blocklist length = " + str(len(blockList)))
-        for block in blockList:
-            # print("block = " + str(block))
-            # print(str(startBlock[0] > block[0]) + ": startBlock length > block length. startBlock = " + str(startBlock) + ", block = " + str(block))
-            # print(str(startBlock[1] > block[1]) + ": startBlock width > block width. startBlock = " + str(startBlock) +  ", block = " + str(block))
-            if (startBlock[0] > block[0]):
-                print(startBlock[0])
-                print(block[0])
-                print("pass [0]")
-                if (startBlock[1] > block[1]):
-                    print(startBlock[1])
-                    print(block[1])
-                    print("pass [1]")
-                    if (block not in towerList):
-                        print(block not in towerList)
-                        print("pass block not in tower list")
-                # print("both were true")
-                        newCanStackList.append(block)
-                # print("block appended = " + str(block))
-
-            #then, we run stackP on each element that many times
-            # print("new can stack list = " + str(newCanStackList))
-        maxHeightAdded = 0
-
-        if len(canStackList) > 0:
-            
-
-            dynamicTable = []
-            
-            for block in canStackList:
-
-            #the goal of this for loop is to go through the blocks that
-            #can be stacked on our starting block, and finding the best
-            #one to add, by looking recursively through the options
-
-            #get the height that it would add, save it to a running variable,
-            #then compare that to the next block so that you get the block
-            #that adds the most height
-
-            #for each block, get its height
-                heightAdded = block[2]
-                #this is the ht that each block adds
-
-                # print("len of new csl = " + str(len(newCanStackList)))
-                # print("new can stack list = " + str(newCanStackList))
-
-                (selectedBlock, heightIfChooseThis) = stackP(block, newCanStackList, towerList, totalHeight + heightAdded, newCanStackList)
-
-                if (selectedBlock not in towerList and startBlock[0] > selectedBlock[0] and startBlock[1] > selectedBlock[1]):
-                    dynamicTable.append((selectedBlock, heightIfChooseThis))
-                
-            
-            currentMax = canStackList[0][2]
-        
-            bestBlock = canStackList[0]
-            print("best Block at allocation = " + str(bestBlock))
-            # print("current max1 =" + str(currentMax))
-            #now goes through dynamic table and picks the best one to adds
-            for (block, possibleHeight) in dynamicTable:
-                
-                print(block, possibleHeight)
-                # print("current max2 =" + str(currentMax))
-                if possibleHeight > currentMax:
-                    # print("current max3 =" + str(currentMax))
-                    bestBlock = block
-                    currentMax = possibleHeight
-            
-            if (bestBlock not in towerList):
-                if (startBlock[0] > bestBlock[0]):
-                    if (startBlock[1] > bestBlock[1]):
-                        towerList.append(bestBlock)
-                        print("stacked " + str(bestBlock) + " on the tower")
-                
-            
-            # print("bestBlock = " + str(bestBlock))
-            # print(blockList)
-            #blockList.remove(bestBlock)
-            #towerList.append(startBlock)
-            # print("dynamic table so far = " + str(dynamicTable))
-            #towerList.append(bestBlock)
-            totalHeight += currentMax
-
-            return (selectedBlock, totalHeight)
-            #find the best and choose that for the next step
-        
     else:
-        #base case, we've checked everything, so just return empty
-        return (startBlock, totalHeight)
+
+        startIndex = blockList.index(startBlock) + 1 if startBlock != [float("inf"), float("inf"), 0] else 0
+        for block in blockList[startIndex:]:
+
+            if (startBlock[0] > block[0] and startBlock[1] > block[1]):
+                tower = []
+                tower.append(stackP(block, blockList[blockList.index(block) + 1:],towerList))
+                print("tower = " + str(tower))
+                towerList.append(tower) 
+
+        print("towerList = " + str(towerList))
 
 stack(sortedBlocks,outfileName)
