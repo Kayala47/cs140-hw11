@@ -6,18 +6,29 @@ You can use the command line to CD into the file holding the Python document and
 
 ## Algorithm ## 
 
-The algorithm we implemented follows a dynamic programming model, where the optimal solution can be defined in terms of the optimal solutions to subproblems, which overlap with one another. 
-The optimal substructure of our algorithm is evident because by looking at our stack and stackP functions, it is possible to see that we first solve the "subproblem:" finding the best possible solution given a starting block, to then arrive at the optimal solution: the best possible way to stack all the blocks. 
-Our algorithm also incorporates a recursive element (recursive definition), in which the program recursively calls stackP in order to iterate to eventually find the optimal solution. The recrusive definition of our optimal solution would be: optimal solution = max height(all possible towers to build). 
-Our dynamic programming table holds these said possible tower solutions, and is filled out by looking at each block one by one and building a respective tower (left to right), and then moving down the table as more towers are built, to eventually find the most optimal tower somewhere in the table. We then search the table for the solution that gives the best height.  
+Our algorithm is a DP solution that fills out a table based on how high the tower can reach if we start at a particular block. Our stackDP function fills out this DP table based on repeatedly calling stackDPPrime, which itself finds the tallest tower you can make given a starting block and a list of blocks.
 
+Our method for finding the tallest tower from any given block is as follows:
+Make a list of all the blocks that can be stacked on top of our startblock
+Find all possible permutations of the above list and iterate through them, making a tower from each permutation and placing it in a list containing all the possible towers that can be built
+Find the tallest of those possible towers and report that as the max height tower. 
 
-The program has two main functions, stack and stackP, which perform the main recursive operations in dynamic programming. In this block problem, these include creating a dynamic table which holds all the possible solutions, and then having the program select the max height solution possible. It uses a list called canStackList to hold all the possible blocks you can stack on top of the startingBlock. This canStackList holds these blocks as tuples, which has the dimensions of the block as well as the corresponding height. This way, the program can select the appropriately fitting block, but also the block that maximizes height. 
+This algorithm works naively; it doesn’t have to worry about the interaction within several blocks (ie, choosing one block might preclude another taller block from being stacked) because it just tries all possibilities. The key is that it still checks base heights of every block it wants to stack, so it only makes legitimate towers. Due to the large size of the permutations, however, we might expect it to be slower than other algorithms. 
 
+We know that this algorithm is correct because it is able to account for every possible permutation of the blocks and choose the best one, which means we have considered all other possibilities and have found the maximum. Using this method, it shouldn't be possible to find any other solutions that are better.
+
+## Interesting design decision ## 
+
+We struggled to find a recursive implementation that would work, and were similarly stumped about a DP solution because we couldn't figure out a way to make sure that every possibility was accounted for, especially in regards to skipping some blocks in favor of stacking others. Our solution was to make a list of permutations that would allow us to account for every single possibility in ordering of the blocks. This means that we run our block list through a permutation function in order to get all possibilities, then make a tower from each and finally choose the largest tower in order to place that in our DP list. 
 
 ## Running Time ##
 
-Our program's expected running time is O(n^2). In stackP, we use a for loop that looks through the entire blocklist in order to find the blocks that can be stacked on top of our starting block. 
+Our program's expected running time is O(n^2). In stackDPPrime, we use two nested for loops to search for every possible permutation. There is some large constant in front of that because a) we are working with 3x the number of data points given just because of the different orientations and b) trying out every possible permutation means we are sorting through a huge list. 
 
  ## How we tested our code ## 
+ We ran our code through different scenarios which it passed. We were unable to open the testfiles given, as neither of us could find a program to open them with. Through print statements, we were able to interrogate each of our functions separately to make sure that they worked as intended, and we were able to see the process live. 
+ 
+ ## Acknowledgments ## 
+ 
+ We are thankful to Professor Kauchak for his help, especially in helping us realize that our initial sorting of elements was wrong. 
 
