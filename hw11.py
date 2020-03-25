@@ -1,4 +1,5 @@
 import sys
+import itertools
 
 # open up infile and read data in
 
@@ -27,6 +28,7 @@ infile.close()
 
 allBlocks = []
 
+#this section just makes all the correct orientations
 for block in blocks:
 
     dimensions = block.split(" ")
@@ -35,41 +37,96 @@ for block in blocks:
     dimensions[1] = int(dimensions[1])
     dimensions[2] = int(dimensions[2])
 
-    # 0,1,2  = dimensions, 3 = base area
+    # 0,1,2  = l,w,h   
+    '''
     allBlocks.append([dimensions[0], dimensions[1], dimensions[
                      2]])
     allBlocks.append([dimensions[1], dimensions[2], dimensions[
                      0]])
     allBlocks.append([dimensions[2], dimensions[0], dimensions[
                      1]])
+    '''
 
+    allBlocks.append([dimensions[0], dimensions[1], dimensions[
+                     2]])
+    allBlocks.append([dimensions[0], dimensions[2], dimensions[
+                     1]])
+    allBlocks.append([dimensions[1], dimensions[2], dimensions[
+                     0]])
+
+
+    #we weren't sure which orientation was correct. We went with the second
 
 # now we have a list with all the possible orientations of blocks and
 # their respective base areas
 
 
-# now we have to sort this list from biggest to smallest length
-sortedBlocks = sorted(allBlocks, key=lambda x: x[0], reverse=True)
+# now we have to sort this list based on the largest dimension
+sortedBlocks = sorted(allBlocks, key= lambda x: (max(x[0],x[1]),x[0], x[1] ), reverse = True)
 
+#returns the largest tower one can create starting with a particular block
+#blockList = list of blocks sorted in order of decreasing base
+#startBlock = the block to start the tower with
+def stackDPPrime(blockList, startBlock):
 
-# now we can recursively search the list for paths and find the best
-# combination of blocks
+    canStackList = []
 
+    for block in blockList[blockList.index(startBlock):]:
+        if (block[0] < startBlock[0] and block[1] < startBlock[1]):
+            canStackList.append(block)
 
+    #the above section creates a list of all the blocks that can be possibly stacked on top of our start block
 
-# blockList refers to sorted blocks
+    print("startBlock is " + str(startBlock) + " and canStackList is " + str(canStackList))
 
+    permutationsList = list(itertools.permutations(canStackList)) #mixes up the blocks to create a list of all possible permutations
 
-def stack(blockList, outfile):
-    # this displays the solutions we got before
-    totalHeight = 0
+    possibleTowers = []
+
+    for perm in permutationsList:
+        #for each of the permutations, it creates a tower by stacking all the blocks that can be stacked
+
+        tower = []
+
+        tower.append(startBlock)
+
+        previousBlock = startBlock
+
+        for block in perm:
+
+            if (block[0] < previousBlock[0] and block[1] < previousBlock[1]):
+
+                tower.append(block)
+                previousBlock = block
+
+        possibleTowers.append(tower)
+
+        #now, all it has to do is find out which tower was the best and return that
+    return findTallestTower(possibleTowers)
+
+#creates a DP table based on the tallest tower that can be built from each starting block in blockList
+def stackDP(blockList):
 
     dynamicTable = []
 
-    stackP([float("inf"), float("inf"), 0], sortedBlocks, dynamicTable)
+    for block in blockList:
+        #fills out the value for each block
 
-    print("dynamicTable = " + str(dynamicTable))
-    bestTower = findTallestTower(dynamicTable)
+        dynamicTable.append(stackDPPrime(blockList, block))
+
+    #now, it just gets the best tower
+    return findTallestTower(dynamicTable)
+
+#this function actually just prints the answer to an outfile
+def stack(blockList, outfile):
+    # this displays the solutions we got before
+
+    totalHeight = 0
+
+    bestTower = stackDP(blockList)
+
+    howManyBlocks = len(bestTower)
+
     print("bestTower = " + str(bestTower))
 
     answer = ""
@@ -80,13 +137,14 @@ def stack(blockList, outfile):
         totalHeight += block[2]
 
     outfile = open(outfileName, 'w')
-    outfile.write(str(totalHeight))
+    outfile.write(str(howManyBlocks))
     outfile.write("\n")
     outfile.write(answer)
 
-    print("The tallest tower has " + str(len(bestTower)) + " blocks and a height of " + str(totalHeight))
+    print("The tallest tower has " + str(howManyBlocks) + " blocks and a height of " + str(totalHeight))
     outfile.close()
 
+#finds the tower with the biggest height given a list of towers
 def findTallestTower(towerList):
 
     maxHeight = 0
@@ -95,7 +153,7 @@ def findTallestTower(towerList):
     for tower in towerList:
         towerHeight = 0
         for block in tower:
-            if (block != None):
+            if (block != None and len(block) > 1):
                 towerHeight += block[2]
             else:
                 tower.remove(block)
@@ -105,24 +163,9 @@ def findTallestTower(towerList):
             tallestTower = tower
 
     return tallestTower
-#defining terms here
 
-def stackP(startBlock, blockList, towerList):
+# print(sortedBlocks)
 
-    if (len(blockList) < 1):
-        return startBlock
-
-    else:
-
-        startIndex = blockList.index(startBlock) + 1 if startBlock != [float("inf"), float("inf"), 0] else 0
-        for block in blockList[startIndex:]:
-
-            if (startBlock[0] > block[0] and startBlock[1] > block[1]):
-                tower = []
-                tower.append(stackP(block, blockList[blockList.index(block) + 1:],towerList))
-                print("tower = " + str(tower))
-                towerList.append(tower) 
-
-        print("towerList = " + str(towerList))
-
-stack(sortedBlocks,outfileName)
+# stack(sortedBlocks,outfileName)
+stack(sortedBlocks, outfileName)
+print(stackDP(sortedBlocks))
